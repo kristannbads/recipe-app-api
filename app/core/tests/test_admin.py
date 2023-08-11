@@ -1,7 +1,6 @@
 """ Test custom admin commands """
 
 from django.test import TestCase
-from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from core.admin import UserCreationForm, UserChangeForm, UserAdmin
 from django.contrib.auth import get_user_model
@@ -65,7 +64,8 @@ class UserCreationFormTest(TestCase):
         }
         form = UserCreationForm(data=form_data)
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["password2"], ["Passwords don't match"])
+        self.assertEqual(form.errors["password2"],
+                         ["Passwords don't match"])
 
     def test_save_user(self):
         """Test saving user"""
@@ -124,7 +124,8 @@ class UserAdminTest(TestCase):
                     {
                         "classes": ["wide"],
                         "fields": ["email", "password1", "password2",
-                                   "name", "is_active", "is_staff", "is_superuser"],
+                                   "name", "is_active", "is_staff",
+                                   "is_superuser"],
                     },
                 ),
             ],
