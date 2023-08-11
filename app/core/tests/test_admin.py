@@ -10,21 +10,18 @@ from django.urls import reverse
 from django.test import Client
 
 
-User = get_user_model()
-
-
 class AdminSiteTests(TestCase):
     """Tests for django admin."""
 
     def setUp(self):
         """Create user and client"""
         self.client = Client()
-        self.admin_user = User.objects.create_superuser(
+        self.admin_user = get_user_model().objects.create_superuser(
             email="admin@example.com",
             password="testpass123",
         )
         self.client.force_login(self.admin_user)
-        self.user = User.objects.create_user(
+        self.user = get_user_model().objects.create_user(
             email="user@example.com",
             password="testpass123",
             name="Test user"
@@ -104,7 +101,7 @@ class UserAdminTest(TestCase):
     def test_admin_attributes(self):
         """Test attributes of UserAdmin class"""
 
-        admin_instance = UserAdmin(User, None)
+        admin_instance = UserAdmin(get_user_model(), None)
 
         self.assertEqual(admin_instance.form, UserAdmin.form)
         self.assertEqual(admin_instance.add_form, UserAdmin.add_form)
@@ -126,7 +123,8 @@ class UserAdminTest(TestCase):
                     None,
                     {
                         "classes": ["wide"],
-                        "fields": ["email", "password1", "password2", "name", "is_active", "is_staff", "is_superuser"],
+                        "fields": ["email", "password1", "password2",
+                                   "name", "is_active", "is_staff", "is_superuser"],
                     },
                 ),
             ],
