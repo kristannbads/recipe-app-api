@@ -2,10 +2,48 @@
 
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from core.admin import UserCreationForm, UserChangeForm, UserAdmin
 from django.contrib.auth import get_user_model
+
+from django.urls import reverse
+from django.test import Client
+
+
+User = get_user_model()
+
+
+class AdminSiteTests(TestCase):
+    """Tests for django admin."""
+
+    def setUp(self):
+        """Create user and client"""
+        self.client = Client()
+        self.admin_user = User.objects.create_superuser(
+            email="admin@example.com",
+            password="testpass123",
+        )
+        self.client.force_login(self.admin_user)
+        self.user = User.objects.create_user(
+            email="user@example.com",
+            password="testpass123",
+            name="Test user"
+        )
+
+    def test_users_list(self):
+        """Test that users are listed on page"""
+        url = reverse('admin:core_user_changelist')
+        res = self.client.get(url)
+
+        self.assertContains(res, self.user.name)
+        self.assertContains(res, self.user.email)
+
+    def test_create_user_page(self):
+        """Test the create user page works"""
+        url = reverse('admin:core_user_add')
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 200)
 
 
 class UserCreationFormTest(TestCase):
@@ -65,12 +103,13 @@ class UserChangeFormTest(TestCase):
 class UserAdminTest(TestCase):
     def test_admin_attributes(self):
         """Test attributes of UserAdmin class"""
-        User = get_user_model()
+
         admin_instance = UserAdmin(User, None)
 
         self.assertEqual(admin_instance.form, UserAdmin.form)
         self.assertEqual(admin_instance.add_form, UserAdmin.add_form)
-        self.assertEqual(admin_instance.list_display, ["email", "is_staff"])
+        self.assertEqual(admin_instance.list_display, [
+                         "email", "name", "is_staff"])
         self.assertEqual(admin_instance.list_filter, ["is_staff"])
 
         self.assertEqual(
@@ -87,11 +126,11 @@ class UserAdminTest(TestCase):
                     None,
                     {
                         "classes": ["wide"],
-                        "fields": ["email", "password1", "password2"],
+                        "fields": ["email", "password1", "password2", "name", "is_active", "is_staff", "is_superuser"],
                     },
                 ),
             ],
         )
         self.assertEqual(admin_instance.search_fields, ["email"])
-        self.assertEqual(admin_instance.ordering, ["email"])
+        self.assertEqual(admin_instance.ordering, ["id"])
         self.assertEqual(admin_instance.filter_horizontal, [])
