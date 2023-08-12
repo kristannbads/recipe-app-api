@@ -6,7 +6,7 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 
 
-from .models import User
+from core import models
 
 
 class UserCreationForm(forms.ModelForm):
@@ -19,7 +19,7 @@ class UserCreationForm(forms.ModelForm):
     )
 
     class Meta:
-        model = User
+        model = models.User
         fields = ["email"]
 
     def clean_password2(self):
@@ -48,7 +48,7 @@ class UserChangeForm(forms.ModelForm):
     password = ReadOnlyPasswordHashField()
 
     class Meta:
-        model = User
+        model = models.User
         fields = ["email", "password", "is_active", "is_staff"]
 
 
@@ -85,5 +85,6 @@ class UserAdmin(BaseUserAdmin):
 
 # Register your models here.
 
-admin.site.register(User, UserAdmin)
+admin.site.register(models.User, UserAdmin)
+admin.site.register(models.Recipe)
 admin.site.unregister(Group)
