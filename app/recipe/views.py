@@ -2,10 +2,7 @@
 
 
 from recipe import serializers
-from recipe.serializers import (
-    RecipeSerializer,
-    RecipeDetailSerializer
-)
+from recipe.serializers import RecipeDetailSerializer
 from rest_framework import authentication, permissions
 from rest_framework import viewsets
 from core.models import Recipe
