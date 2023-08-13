@@ -1,4 +1,4 @@
-"""URL mappings for the user API"""
+"""URL mappings for the recipe API"""
 
 from django.urls import (
     path,
