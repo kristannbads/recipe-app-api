@@ -1,8 +1,6 @@
 """Test for recipes APIs."""
 
 from decimal import Decimal
-from re import M
-from venv import create
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -10,7 +8,6 @@ from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.test import APIClient
-
 
 from core.models import Recipe, Tag
 
@@ -28,7 +25,7 @@ def detail_url(recipe_id):
 
 
 def create_recipe(user, **kwargs):
-    """Create and return a sample recipe"""
+    """Create and return a sample recipe."""
 
     defaults = {
         'title': 'Sample Title recipe',
@@ -46,12 +43,12 @@ def create_recipe(user, **kwargs):
 
 
 def create_user(**params):
-    """Create and return a new user"""
+    """Create and return a new user."""
     return get_user_model().objects.create_user(**params)
 
 
 class PublicRecipeAPITests(TestCase):
-    """Test unauthenticated API requests"""
+    """Test unauthenticated API requests."""
 
     def setUp(self):
         self.client = APIClient()
@@ -64,7 +61,7 @@ class PublicRecipeAPITests(TestCase):
 
 
 class PrivateRecipeAPITests(TestCase):
-    """Test authenticated API requests"""
+    """Test authenticated API requests."""
 
     def setUp(self):
         self.client = APIClient()
@@ -75,7 +72,7 @@ class PrivateRecipeAPITests(TestCase):
         self.client.force_authenticate(self.user)
 
     def test_retrieve_recipes(self):
-        """Test retrieving a list of recipes"""
+        """Test retrieving a list of recipes."""
 
         create_recipe(user=self.user)
         create_recipe(user=self.user)
@@ -226,8 +223,6 @@ class PrivateRecipeAPITests(TestCase):
             'title': 'Thai Prawn Curry',
             'time_minutes': 30,
             'price': Decimal('2.5'),
-            # 'tags': [{'name': 'Thai'}, {'name': 'Dinner'}],
-
             'tags': [tag1.id, tag2.id]
         }
 
@@ -247,34 +242,8 @@ class PrivateRecipeAPITests(TestCase):
             ).exists()
             self.assertTrue(exists)
 
-    # def test_create_recipe_with_existing_tags(self):
-    #     """Test creating a recipe with existing tag."""
-    #     tag_indian = Tag.objects.create(user=self.user, name='Indian')
-    #     payload = {
-    #         'title': 'Pongal',
-    #         'time_minutes': 60,
-    #         'price': Decimal('4.5'),
-    #         'tags': [{'name': 'Indian'}, {'name': 'Breakfast'}]
-    #     }
-    #     res = self.client.post(RECIPES_URL, payload, format='json')
-    #     print("Response Status Code:", res.status_code)
-    #     print("Response Content:", res.content)
-    #     self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-    #     recipes = Recipe.objects.filter(user=self.user)
-    #     self.assertEqual(recipes.count(), 1)
-    #     recipe = recipes[0]
-    #     self.assertEqual(recipe.tags.count(), 2)
-    #     self.assertIn(tag_indian, recipe.tags.all())
-    #     for tag in payload['tag']:
-    #         exists = recipe.tags.filter(
-    #             id=tag,
-    #             # name=tag['name'],
-    #             user=self.user,
-    #         ).exits()
-    #         self.assertTrue(exists)
-
     def test_create_tag_on_update(self):
-        """Test creating tag when updating a recipe"""
+        """Test creating tag when updating a recipe."""
         recipe = create_recipe(user=self.user)
         tag1 = Tag.objects.create(user=self.user, name='Italian')
         payload = {'tags': [tag1.id]}
@@ -289,12 +258,12 @@ class PrivateRecipeAPITests(TestCase):
     def test_update_recipe_assign_tag(self):
         """Test assigning an existing tag when updating a recipe."""
         tag_breakfast = Tag.objects.create(user=self.user, name='Breakfast')
-        # print(tag_breakfast.id)
+
         recipe = create_recipe(user=self.user)
         recipe.tags.add(tag_breakfast)
-        # print(recipe.tags.all())
+
         tag_lunch = Tag.objects.create(user=self.user, name='Lunch')
-        # print(tag_lunch)
+
         payload = {'tags': [tag_lunch.id]}
         url = detail_url(recipe.id)
         res = self.client.patch(url, payload, format='json')
