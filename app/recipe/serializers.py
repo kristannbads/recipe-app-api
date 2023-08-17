@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 from core.models import (
-    Tag, Recipe
+    Tag, Recipe, Ingredient
 )
 
 
@@ -20,9 +20,24 @@ class TagSerializer(serializers.ModelSerializer):
         return tag
 
 
+class IngredientSerializer(serializers.ModelSerializer):
+    """Serializer for ingredients."""
+
+    class Meta:
+        model = Ingredient
+        fields = ['id', 'name']
+        read_only_fields = ['id']
+
+    def create(self, validated_data):
+        user = self.context['request'].user  # Get the authenticated user
+        ingredient = Ingredient.objects.create(user=user, **validated_data)
+        return ingredient
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     """Serializer for recipe lists."""
     tags = TagSerializer(many=True, required=False)
+    ingredients = IngredientSerializer(many=True, required=False)
     # tags = serializers.SlugRelatedField(
     #     slug_field='name',
     #     read_only=True
@@ -31,12 +46,14 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = [
-            'id', 'title', 'time_minutes', 'price', 'link', 'tags',
+            'id', 'title', 'time_minutes',
+            'price', 'link', 'tags',
+            'ingredients'
         ]
         read_only_fields = ['id']
 
     def _get_or_create_tags(self, tags_data, recipe):
-        """Handle getting or creating tags as needed"""
+        """Handle getting or creating tags as needed."""
         auth_user = self.context['request'].user
         for tag in tags_data:
             tag_obj, created = Tag.objects.get_or_create(
@@ -45,20 +62,38 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
             recipe.tags.add(tag_obj)
 
+    def _get_or_create_ingredients(self, ingredients, recipe):
+        """Handle getting or creating ingredients as needed."""
+        auth_user = self.context['request'].user
+        for ingredient in ingredients:
+            ingredient_obj, create = Ingredient.objects.get_or_create(
+                user=auth_user,
+                **ingredient,
+            )
+            recipe.ingredients.add(ingredient_obj)
+
     def create(self, validated_data):
         """Create a recipe."""
         tags_data = validated_data.pop('tags', [])
+        ingredients = validated_data.pop('ingredients', [])
         recipe = Recipe.objects.create(**validated_data)
         self._get_or_create_tags(tags_data, recipe)
+        self._get_or_create_tags(ingredients, recipe)
 
         return recipe
 
     def update(self, instance, validated_data):
         """Update recipe."""
         tags_data = validated_data.pop('tags', None)
+        ingredients = validated_data.pop('ingredients', None)
+
         if tags_data is not None:
             instance.tags.clear()
             self._get_or_create_tags(tags_data, instance)
+
+        if ingredients is not None:
+            instance.ingredients.clear()
+            self._get_or_create_ingredients(ingredients, instance)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
